@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Filter Sentimen Forex</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    .filter-controls { display: flex; gap: 10px; margin-bottom: 20px; }
+    input { padding: 8px; flex: 1; }
+    button { padding: 8px 15px; background: #4CAF50; color: white; border: none; cursor: pointer; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    .positif { color: green; font-weight: bold; }
+    .negatif { color: red; font-weight: bold; }
+    a { display: inline-block; margin-top: 20px; padding: 8px 15px; background: #333; color: white; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <h1>Filter Data Sentimen</h1>
+  <div class="filter-controls">
+    <input type="text" id="filter-negara" placeholder="Cari Mata Uang (USD, EUR)">
+    <input type="text" id="filter-news" placeholder="Cari Jenis Data (GDP, Inflation)">
+    <button onclick="applyFilter()">Filter</button>
+  </div>
+  <table id="filtered-table">
+    <thead>
+      <tr>
+        <th>Tanggal</th>
+        <th>Mata Uang</th>
+        <th>Jenis Data</th>
+        <th>Aktual</th>
+        <th>Previous</th>
+        <th>Konsensus</th>
+        <th>Revisi</th>
+        <th>Sentimen</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+  <a href="index.html">Kembali ke Input Data</a>
+
+  <script>
+    function applyFilter() {
+      const negara = document.getElementById('filter-negara').value.toUpperCase();
+      const jenisNews = document.getElementById('filter-news').value.toLowerCase();
+      const allData = JSON.parse(localStorage.getItem('forexData')) || [];
+      
+      const filteredData = allData.filter(item => 
+        (negara === '' || item.negara.includes(negara)) &&
+        (jenisNews === '' || item.jenis_news.toLowerCase().includes(jenisNews))
+      );
+      
+      renderTable(filteredData);
+    }
+
+    function renderTable(data) {
+      const tableBody = document.querySelector('#filtered-table tbody');
+      tableBody.innerHTML = data.map(item => `
+        <tr>
+          <td>${item.tanggal}</td>
+          <td>${item.negara}</td>
+          <td>${item.jenis_news}</td>
+          <td>${item.actual}</td>
+          <td>${item.previous}</td>
+          <td>${item.consensus}</td>
+          <td>${item.revisi}</td>
+          <td class="${item.sentimen.toLowerCase()}">${item.sentimen}</td>
+        </tr>
+      `).join('');
+    }
+
+    // Jalankan filter saat halaman dimuat
+    window.onload = applyFilter;
+  </script>
+</body>
+</html>
