@@ -4,68 +4,115 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Forex Sentiment Dashboard</title>
-  <link rel="stylesheet" href="styles/style.css">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="scripts/xlsx.full.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    .input-form { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px; }
+    input, select, button { padding: 8px; }
+    select { border: 1px solid #ddd; border-radius: 4px; width: 100%; }
+    button { background: #4CAF50; color: white; border: none; cursor: pointer; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    .positif { color: green; font-weight: bold; }
+    .negatif { color: red; font-weight: bold; }
+  </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Forex Sentiment Dashboard</h1>
-    <div class="input-form">
-      <input type="date" id="tanggal" required>
-      <select id="negara" required>
-        <option value="">Pilih Mata Uang</option>
-        <option value="USD">USD</option>
-        <option value="EUR">EUR</option>
-        <option value="GBP">GBP</option>
-        <option value="JPY">JPY</option>
-        <option value="AUD">AUD</option>
-        <option value="CAD">CAD</option>
-        <option value="CHF">CHF</option>
-        <option value="NZD">NZD</option>
-      </select>
-      <select id="jenis-news" required>
-        <option value="">Pilih Jenis Data</option>
-        <option value="GDP">GDP</option>
-        <option value="Inflation">Inflation</option>
-        <option value="Interest Rate">Interest Rate</option>
-        <option value="Unemployment">Unemployment</option>
-        <option value="Retail Sales">Retail Sales</option>
-      </select>
-      <input type="number" step="0.01" id="consensus" placeholder="Konsensus" required>
-      <input type="number" step="0.01" id="actual" placeholder="Aktual" required>
-      <input type="number" step="0.01" id="previous" placeholder="Previous" required>
-      <input type="number" step="0.01" id="revisi" placeholder="Revisi">
-      <button onclick="tambahData()">Tambah Data</button>
-    </div>
-    <div class="dashboard">
-      <canvas id="sentimentChart"></canvas>
-      <div class="table-container">
-        <table id="data-table">
-          <thead>
-            <tr>
-              <th>Tanggal</th>
-              <th>Mata Uang</th>
-              <th>Jenis Data</th>
-              <th>Konsensus</th>
-              <th>Aktual</th>
-              <th>Previous</th>
-              <th>Revisi</th>
-              <th>Sentimen</th>
-              <th>Aksi</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </div>
-      <div class="excel-actions">
-        <input type="file" id="file-input" accept=".xlsx">
-        <button onclick="importExcel()">Import Excel</button>
-        <button onclick="exportExcel()">Export Excel</button>
-      </div>
-    </div>
+  <h1>Input Data Sentimen Forex</h1>
+  <div class="input-form">
+    <input type="date" id="tanggal" required>
+    <select id="negara" required>
+      <option value="">Pilih Mata Uang</option>
+      <option value="USD">USD</option>
+      <option value="EUR">EUR</option>
+      <option value="GBP">GBP</option>
+      <option value="JPY">JPY</option>
+      <option value="AUD">AUD</option>
+      <option value="CAD">CAD</option>
+      <option value="CHF">CHF</option>
+      <option value="NZD">NZD</option>
+    </select>
+    <input type="text" id="jenis-news" placeholder="Jenis Data (GDP, Inflation)" required>
+    <input type="number" step="0.01" id="actual" placeholder="Aktual" required>
+    <input type="number" step="0.01" id="previous" placeholder="Previous" required>
+    <input type="number" step="0.01" id="consensus" placeholder="Konsensus" required>
+    <input type="number" step="0.01" id="revisi" placeholder="Revisi">
+    <button onclick="tambahData()">Tambah Data</button>
+    <a href="filter.html" style="grid-column: span 4; text-align: center; display: block; margin-top: 10px; padding: 8px; background: #333; color: white; text-decoration: none;">Lihat Dashboard Filter</a>
   </div>
-  <script src="scripts/app.js"></script>
-  <script src="scripts/chart.js"></script>
+  <table id="data-table">
+    <thead>
+      <tr>
+        <th>Tanggal</th>
+        <th>Mata Uang</th>
+        <th>Jenis Data</th>
+        <th>Aktual</th>
+        <th>Previous</th>
+        <th>Konsensus</th>
+        <th>Revisi</th>
+        <th>Sentimen</th>
+        <th>Aksi</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    let data = JSON.parse(localStorage.getItem('forexData')) || [];
+
+    function hitungSentimen(actual, consensus, previous, revisi) {
+      const score = (actual - consensus) * 0.5 + (actual - previous) * 0.3 + revisi * 0.2;
+      return score >= 0 ? "Positif" : "Negatif";
+    }
+
+    function tambahData() {
+      const newData = {
+        id: Date.now(),
+        tanggal: document.getElementById('tanggal').value,
+        negara: document.getElementById('negara').value,
+        jenis_news: document.getElementById('jenis-news').value,
+        actual: parseFloat(document.getElementById('actual').value),
+        previous: parseFloat(document.getElementById('previous').value),
+        consensus: parseFloat(document.getElementById('consensus').value),
+        revisi: parseFloat(document.getElementById('revisi').value || 0),
+        sentimen: hitungSentimen(
+          parseFloat(document.getElementById('actual').value),
+          parseFloat(document.getElementById('consensus').value),
+          parseFloat(document.getElementById('previous').value),
+          parseFloat(document.getElementById('revisi').value || 0)
+        )
+      };
+      data.push(newData);
+      localStorage.setItem('forexData', JSON.stringify(data));
+      updateTable();
+    }
+
+    function updateTable() {
+      const tableBody = document.querySelector('#data-table tbody');
+      tableBody.innerHTML = data.map(item => `
+        <tr>
+          <td>${item.tanggal}</td>
+          <td>${item.negara}</td>
+          <td>${item.jenis_news}</td>
+          <td>${item.actual}</td>
+          <td>${item.previous}</td>
+          <td>${item.consensus}</td>
+          <td>${item.revisi}</td>
+          <td class="${item.sentimen.toLowerCase()}">${item.sentimen}</td>
+          <td>
+            <button onclick="hapusData(${item.id})">Hapus</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function hapusData(id) {
+      data = data.filter(d => d.id !== id);
+      localStorage.setItem('forexData', JSON.stringify(data));
+      updateTable();
+    }
+
+    // Muat data saat halaman dimuat
+    window.onload = updateTable;
+  </script>
 </body>
 </html>
