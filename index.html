@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Forex Sentiment Dashboard</title>
+  <link rel="stylesheet" href="styles/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="scripts/xlsx.full.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <h1>Forex Sentiment Dashboard</h1>
+    <div class="input-form">
+      <input type="date" id="tanggal" required>
+      <select id="negara" required>
+        <option value="">Pilih Mata Uang</option>
+        <option value="USD">USD</option>
+        <option value="EUR">EUR</option>
+        <option value="GBP">GBP</option>
+        <option value="JPY">JPY</option>
+        <option value="AUD">AUD</option>
+        <option value="CAD">CAD</option>
+        <option value="CHF">CHF</option>
+        <option value="NZD">NZD</option>
+      </select>
+      <select id="jenis-news" required>
+        <option value="">Pilih Jenis Data</option>
+        <option value="GDP">GDP</option>
+        <option value="Inflation">Inflation</option>
+        <option value="Interest Rate">Interest Rate</option>
+        <option value="Unemployment">Unemployment</option>
+        <option value="Retail Sales">Retail Sales</option>
+      </select>
+      <input type="number" step="0.01" id="consensus" placeholder="Konsensus" required>
+      <input type="number" step="0.01" id="actual" placeholder="Aktual" required>
+      <input type="number" step="0.01" id="previous" placeholder="Previous" required>
+      <input type="number" step="0.01" id="revisi" placeholder="Revisi">
+      <button onclick="tambahData()">Tambah Data</button>
+    </div>
+    <div class="dashboard">
+      <canvas id="sentimentChart"></canvas>
+      <div class="table-container">
+        <table id="data-table">
+          <thead>
+            <tr>
+              <th>Tanggal</th>
+              <th>Mata Uang</th>
+              <th>Jenis Data</th>
+              <th>Konsensus</th>
+              <th>Aktual</th>
+              <th>Previous</th>
+              <th>Revisi</th>
+              <th>Sentimen</th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="excel-actions">
+        <input type="file" id="file-input" accept=".xlsx">
+        <button onclick="importExcel()">Import Excel</button>
+        <button onclick="exportExcel()">Export Excel</button>
+      </div>
+    </div>
+  </div>
+  <script src="scripts/app.js"></script>
+  <script src="scripts/chart.js"></script>
+</body>
+</html>
